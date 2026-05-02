@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Loan Dashboard</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  background:#f4f7fb;
+  padding:20px;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+select{
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:15px;
+}
+
+.summary{
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  color:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:20px;
+  text-align:center;
+  font-size:18px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#1e3c72;
+  color:#fff;
+  padding:10px;
+}
+
+td{
+  padding:10px;
+  text-align:center;
+  border-bottom:1px solid #eee;
+}
+
+
+.top-bar{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:10px;
+}
+
+.top-bar button{
+  background:#2a5298;
+  color:#fff;
+  border:none;
+  padding:10px 15px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.3s;
+}
+
+.top-bar button:hover{
+  background:#1e3c72;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="top-bar">
+  <button onclick="goToPage()">Go to Special</button>
+</div>
+
+<h2>Loan Monthly Tracker</h2>
+
+<!-- Branch Filter -->
+<select id="branchFilter" onchange="fetchData()">
+  <option value="">Select Branch</option>
+  <option>Safteey Credit</option>
+  
+</select>
+
+<!-- Total -->
+<div class="summary" id="totalBox">
+  Total This Month: 0.00
+</div>
+
+<table>
+<thead>
+<tr>
+<th>NIC</th>
+<th>Name</th>
+<th>Branch</th>
+<th>Amount</th>
+<th>Loan Date</th>
+</tr>
+</thead>
+<tbody id="tableData"></tbody>
+</table>
+
+</div>
+
+<script>
+
+function fetchData(){
+
+  const branch = document.getElementById("branchFilter").value;
+
+  fetch("../api/search_customer.php")
+  .then(res=>res.json())
+  .then(data=>{
+
+    let rows = "";
+    let total = 0;
+
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    data.records.forEach(item=>{
+
+      const loanDate = new Date(item.loan_date);
+
+      const isCurrentMonth =
+        loanDate >= firstDay && loanDate <= today;
+
+      const branchMatch =
+        !branch || item.branch === branch;
+
+      // ✅ FILTER BOTH TABLE + TOTAL
+      if(branchMatch && isCurrentMonth){
+
+        rows += `
+        <tr>
+          <td>${item.nic}</td>
+          <td>${item.customer_name}</td>
+          <td>${item.branch}</td>
+          <td>${item.amount}</td>
+          <td>${item.loan_date}</td>
+        </tr>
+        `;
+
+        total += parseFloat(item.amount) || 0;
+      }
+
+    });
+
+    document.getElementById("tableData").innerHTML =
+      rows || "<tr><td colspan='5'>No Data</td></tr>";
+
+    document.getElementById("totalBox").innerHTML =
+      "📊 Total (1st → Today): <b>" + total.toFixed(2) + "</b>";
+
+  });
+}
+
+
+
+function goToPage(){
+  window.location.href = "https://special.free.nf/frontend/Safty.html"; // change to your page
+}
+
+
+
+
+
+</script>
+
+</body>
+</html>

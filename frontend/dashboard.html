@@ -1,0 +1,504 @@
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Loan Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+/* ================= GLOBAL ================= */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:"Segoe UI", Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    padding:15px;
+}
+
+/* ================= SPECIAL BUTTON ================= */
+
+.special-btn{
+    display:inline-block;
+    margin-bottom:18px;
+    padding:10px 18px;
+    background:#e67e22;
+    color:#fff;
+    text-decoration:none;
+    border-radius:8px;
+    font-weight:600;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.special-btn:hover{
+    background:#d35400;
+}
+
+/* ================= CONTAINER ================= */
+
+.container{
+    width:100%;
+    max-width:900px;
+    background:#fff;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(0,0,0,0.25);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+}
+
+/* ================= FORM AREA ================= */
+
+.form-area{
+    padding:30px 25px;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+    color:#1e3c72;
+    font-size:20px;
+}
+
+/* ================= INPUTS ================= */
+
+input, select{
+    width:100%;
+    padding:10px 12px;
+    margin-bottom:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:13px;
+    transition:0.3s;
+}
+
+input:focus, select:focus{
+    outline:none;
+    border-color:#2980b9;
+    box-shadow:0 0 6px rgba(41,128,185,0.3);
+}
+
+/* ================= NIC VALIDATION ================= */
+
+.input-error{
+    border-color:#e74c3c !important;
+    background:#fff5f5;
+}
+
+.nic-valid{
+    border-color:#27ae60 !important;
+    background:#f0fff4;
+}
+
+/* ================= BUTTONS ================= */
+
+button{
+    width:100%;
+    padding:10px;
+    font-size:13px;
+    font-weight:600;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.apply-btn{
+    background:#27ae60;
+    color:#fff;
+}
+
+.apply-btn:hover{
+    background:#1e874b;
+}
+
+.details-btn{
+    margin-top:8px;
+    background:#2980b9;
+    color:#fff;
+}
+
+.details-btn:hover{
+    background:#1f6391;
+}
+
+/* ================= NOTIFICATION ================= */
+
+.notification{
+    margin-top:10px;
+    padding:8px;
+    border-radius:6px;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    display:none;
+}
+
+.success{
+    background:#eafaf1;
+    color:#27ae60;
+    border:1px solid #27ae60;
+}
+
+.error{
+    background:#fdecea;
+    color:#e74c3c;
+    border:1px solid #e74c3c;
+}
+
+/* ================= BRANCH AREA ================= */
+
+.branch-area{
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:#fff;
+    padding:30px 20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.branch-area h3{
+    font-size:18px;
+    margin-bottom:15px;
+}
+
+.branch-images{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.branch-images img{
+    width:80%;
+    height:150px;
+    object-fit:contain;
+    background:#f5f5f5;
+    border-radius:10px;
+    box-shadow:0 10px 20px rgba(0,0,0,0.4);
+    transition:0.3s;
+    margin-left:40px;
+}
+
+.branch-images img:hover{
+    transform:scale(1.03);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width:900px){
+    .container{
+        grid-template-columns:1fr;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= SPECIAL BUTTON ================= -->
+
+<a href="https://special.free.nf/frontend/dashboard.html" class="special-btn">
+Special Loan
+</a>
+
+<!-- ================= MAIN CONTAINER ================= -->
+
+<div class="container">
+
+<!-- ================= FORM AREA ================= -->
+
+<div class="form-area">
+
+<h2>Apply Loan</h2>
+
+<input id="nic" placeholder="Customer NIC" oninput="liveNIC(this)">
+<input id="customer_name" placeholder="Customer Name">
+
+<select id="branch">
+<option value="">-- Select Branch --</option>
+
+<option>Market Office Safteey</option>
+<option>Bazzar Easy Credit</option>
+<option>Safteey Credit</option>
+<option>Gun Easy Credit</option>
+</select>
+
+<input id="amount" type="number" placeholder="Loan Amount">
+
+<input id="loan_date" type="date" onchange="calculateEndDate()">
+
+<input id="loan_duration" type="number" placeholder="Loan Duration (Months)" oninput="calculateEndDate()">
+
+<input id="end_date" type="date" readonly>
+
+<input id="guarantor1_nic" placeholder="Guarantor 1 NIC" oninput="liveNIC(this)">
+
+<input id="guarantor2_nic" placeholder="Guarantor 2 NIC" oninput="liveNIC(this)">
+
+<input id="recovery_officer" placeholder="Recovery Officer Name">
+
+<button id="applyBtn" class="apply-btn" onclick="applyLoan()">Apply Loan</button>
+
+<button class="details-btn" onclick="location='customer.html'">
+Customer Details
+</button>
+
+<div id="notify" class="notification"></div>
+
+</div>
+
+<!-- ================= BRANCH AREA ================= -->
+
+<div class="branch-area">
+
+<h3>Our Branches</h3>
+
+<div class="branch-images">
+
+<img src="./img/safty.jpg">
+<img src="./img/Gun.jpg">
+<img src="./img/Easy.jpg">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+/* Notification */
+
+function showNotification(message,type){
+
+const box=document.getElementById("notify");
+
+box.innerText=message;
+
+box.className="notification "+type;
+
+box.style.display="block";
+
+setTimeout(()=>{
+
+box.style.display="none";
+
+},4000);
+
+}
+
+/* NIC LIVE VALIDATION */
+
+function liveNIC(input){
+
+let value=input.value.toUpperCase().replace(/[^0-9VX]/g,"");
+
+input.value=value;
+
+input.classList.remove("input-error","nic-valid");
+
+let oldPattern=/^\d{9}[VX]$/;
+
+let newPattern=/^\d{12}$/;
+
+if(value.length===0) return;
+
+if(oldPattern.test(value)||newPattern.test(value)){
+
+input.classList.add("nic-valid");
+
+}else{
+
+input.classList.add("input-error");
+
+}
+
+}
+
+/* NIC CONVERSION */
+
+function convertNIC(nic){
+
+let oldPattern=/^\d{9}[VX]$/;
+
+let newPattern=/^\d{12}$/;
+
+if(newPattern.test(nic)) return nic;
+
+if(oldPattern.test(nic)){
+
+let digits=nic.substring(0,9);
+
+let year=digits.substring(0,2);
+
+let prefix=parseInt(year)>30?"19":"20";
+
+let firstPart=digits.substring(2,5);
+
+let lastPart=digits.substring(5);
+
+return prefix+year+firstPart+"0"+lastPart;
+
+}
+
+return null;
+
+}
+
+/* END DATE CALCULATION */
+
+function calculateEndDate() {
+    // Get loan date and duration
+    let loanDate = document.getElementById("loan_date").value;
+    let duration = document.getElementById("loan_duration").value;
+
+    // If either is empty, do nothing
+    if (loanDate === "" || duration === "") return;
+
+    // Create date object
+    let date = new Date(loanDate);
+
+    // Add 34 days per month
+    let daysToAdd = parseInt(duration) * 34;
+    date.setDate(date.getDate() + daysToAdd);
+
+    // Format YYYY-MM-DD
+    let year = date.getFullYear();
+    let month = String(date.getMonth() + 1).padStart(2, '0');
+    let day = String(date.getDate()).padStart(2, '0');
+
+    // Set end date field
+    document.getElementById("end_date").value = `${year}-${month}-${day}`;
+}
+
+/* APPLY LOAN */
+
+function applyLoan(){
+
+let btn = document.getElementById("applyBtn");
+
+// 🚫 Prevent double click
+if (btn.disabled) return;
+
+btn.disabled = true;
+btn.innerText = "Processing...";
+
+let finalNIC = convertNIC(nic.value.trim());
+let g1 = convertNIC(guarantor1_nic.value.trim());
+let g2 = convertNIC(guarantor2_nic.value.trim());
+
+let end_date_val = document.getElementById("end_date").value;
+
+// ❌ NIC validation
+if(finalNIC===null || g1===null || g2===null){
+
+    showNotification("Invalid NIC format","error");
+
+    // ✅ FIX: re-enable button
+    btn.disabled = false;
+    btn.innerText = "Apply Loan";
+
+    return;
+}
+
+// ❌ Empty fields validation
+if(customer_name.value==="" || branch.value==="" || amount.value==="" || loan_date.value==="" || loan_duration.value==="" || end_date_val==="" || recovery_officer.value===""){
+
+    showNotification("Please fill all fields","error");
+
+    // ✅ FIX: re-enable button
+    btn.disabled = false;
+    btn.innerText = "Apply Loan";
+
+    return;
+}
+
+fetch("../api/add_loan.php",{
+    method:"POST",
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:
+    "nic="+encodeURIComponent(finalNIC)+
+    "&name="+encodeURIComponent(customer_name.value)+
+    "&branch="+encodeURIComponent(branch.value)+
+    "&amount="+encodeURIComponent(amount.value)+
+    "&loan_date="+encodeURIComponent(loan_date.value)+
+    "&loan_duration="+encodeURIComponent(loan_duration.value)+
+    "&end_date="+encodeURIComponent(end_date_val)+
+    "&guarantor1_nic="+encodeURIComponent(g1)+
+    "&guarantor2_nic="+encodeURIComponent(g2)+
+    "&recovery_officer="+encodeURIComponent(recovery_officer.value)
+})
+.then(r=>r.json())
+.then(d=>{
+
+    if(d.status==="exists"){
+
+        showNotification("Customer already has an active loan in "+d.branch,"error");
+        document.getElementById("nic").classList.add("input-error");
+
+    }
+    else if(d.status==="guarantor_limit"){
+
+        showNotification(d.message,"error");
+
+    }
+    else if(d.status==="success"){
+
+        showNotification("Loan Approved Successfully","success");
+        document.getElementById("nic").classList.remove("input-error");
+
+    }
+    else{
+
+        showNotification(d.message||"Something went wrong","error");
+
+    }
+
+    // ✅ ALWAYS re-enable button after response
+    btn.disabled = false;
+    btn.innerText = "Apply Loan";
+
+})
+.catch(()=>{
+
+    showNotification("Server error","error");
+
+    // ✅ ALSO re-enable on error
+    btn.disabled = false;
+    btn.innerText = "Apply Loan";
+
+});
+
+}
+
+
+
+// Set max date = today
+document.addEventListener("DOMContentLoaded", function(){
+    let today = new Date().toISOString().split("T")[0];
+    document.getElementById("loan_date").setAttribute("max", today);
+});
+
+</script>
+
+</body>
+</html>

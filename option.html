@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    padding: 20px;
+    color: #fff;
+  }
+
+  h1 {
+    margin-bottom: 40px;
+    text-align: center;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+    animation: fadeInDown 1s ease forwards;
+  }
+
+  @keyframes fadeInDown {
+    0% {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 800px;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.05);
+    transform: rotate(45deg) scale(0);
+    transition: all 0.5s ease;
+    border-radius: 50%;
+  }
+
+  .card:hover::before {
+    transform: rotate(45deg) scale(1);
+  }
+
+  .card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+  }
+
+  .card a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+  }
+
+  .card a::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 0;
+    background: #fff;
+    transition: width 0.3s ease;
+    margin-top: 5px;
+  }
+
+  .card a:hover::after {
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<h1>Welcome to the Dashboard</h1>
+
+<div class="dashboard">
+<div class="card"><a href="https://customerchekcingsafty.free.nf/frontend/login.html">NIC Verification</a></div>
+  <div class="card"><a href="frontend/login.html">Loan</a></div>
+  <div class="card"><a href="https://creditmobile.fwh.is/frontend/login.html">Mobile</a></div>
+  <div class="card"><a href="https://saftych.kesug.com/">Cheque</a></div>
+<div class="card"><a href="https://productsafty.free.nf/">Products</a></div>
+<div class="card"><a href="https://safteeystock.free.nf/auth/login.php">Stocks</a></div>
+<div class="card"><a href="https://saftysignature.free.nf/frontend/dashboard.html">Signature</a></div>
+<div class="card"><a href="https://elgibilitysafty.free.nf/frontend/login.html">Eligibility</a></div>
+
+
+  <!-- Add more options here -->
+</div>
+
+</body>
+</html>

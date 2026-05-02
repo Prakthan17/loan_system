@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Customer Details</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:"Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+body{
+  background:linear-gradient(135deg,#e9f0fb,#f7faff);
+  padding:25px;
+  min-height:100vh;
+}
+
+.container{
+  max-width:2000px;
+  margin:auto;
+  background:#ffffff;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.08);
+  animation:fadeIn 0.5s ease-in-out;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:25px;
+  font-size:26px;
+  color:#1e3c72;
+  letter-spacing:0.6px;
+}
+
+/* Inputs */
+input,select{
+  padding:11px 14px;
+  border-radius:10px;
+  border:1px solid #dcdcdc;
+  font-size:14px;
+  transition:all 0.25s ease;
+  margin:5px 6px 12px 0;
+  background:#f9fbff;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:#2a5298;
+  box-shadow:0 0 0 4px rgba(42,82,152,0.15);
+  background:#ffffff;
+}
+
+input[readonly]{
+  background:#f1f1f1;
+  cursor:not-allowed;
+}
+
+/* Buttons */
+button{
+  padding:9px 14px;
+  border-radius:8px;
+  border:none;
+  background:linear-gradient(135deg,#2a5298,#1e3c72);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.25s ease;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,0,0,0.15);
+}
+
+button:active{
+  transform:scale(0.96);
+}
+
+button[style*="c0392b"]{
+  background:linear-gradient(135deg,#e74c3c,#c0392b);
+}
+
+/* Table */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:25px;
+  border-radius:15px;
+  overflow:hidden;
+}
+
+th{
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  color:#fff;
+  padding:15px 10px;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+td{
+  padding:13px 8px;
+  text-align:center;
+  border-bottom:1px solid #f0f0f0;
+  font-size:14px;
+}
+
+tbody tr{
+  transition:all 0.25s ease;
+}
+
+tbody tr:hover{
+  background:#f4f8ff;
+  transform:scale(1.002);
+}
+
+/* Rating Colors */
+.rating-Excellent{
+  background:#d4edda;
+  color:#155724;
+  font-weight:bold;
+}
+
+.rating-Good{
+  background:#cce5ff;
+  color:#004085;
+  font-weight:bold;
+}
+
+.rating-Poor{
+  background:#ffeeba;
+  color:#856404;
+  font-weight:bold;
+}
+
+.rating-Bad{
+  background:#f8d7da;
+  color:#721c24;
+  font-weight:bold;
+}
+
+/* Overdue highlight support */
+.overdue-row{
+  background:#fff5f5 !important;
+  border-left:5px solid #e74c3c;
+}
+
+/* Message */
+#msg{
+  margin-top:12px;
+  text-align:center;
+  font-weight:bold;
+  font-size:15px;
+}
+
+/* Responsive */
+@media(max-width:768px){
+
+  table,thead,tbody,th,td,tr{
+    display:block;
+    width:100%;
+  }
+
+  thead{
+    display:none;
+  }
+
+  tr{
+    margin-bottom:18px;
+    border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    padding:14px;
+    background:#fff;
+  }
+
+  td{
+    border:none;
+    text-align:right;
+    padding:8px 10px;
+  }
+
+  td button{
+    width:100%;
+    margin-top:8px;
+  }
+}
+
+/* Smooth fade animation */
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>Search Customer</h2>
+
+<div>
+  <input id="searchNic" placeholder="NIC" oninput="liveSearch()">
+  <input id="searchName" placeholder="Name" oninput="liveSearch()">
+  <input id="searchBranch" placeholder="Branch" oninput="liveSearch()">
+  <input id="searchAmount" placeholder="Amount" oninput="liveSearch()">
+  <input id="searchCreated" type="date" onchange="liveSearch()">
+  <input id="searchLoan" type="date" onchange="liveSearch()">
+  <input id="searchEnd" type="date" onchange="liveSearch()">
+  <select id="searchStatus" onchange="liveSearch()">
+    <option value="">All Status</option>
+    <option value="Active">Active</option>
+    <option value="Closed">Closed</option>
+  </select>
+</div>
+    
+<button onclick="printTable()" style="margin-top:10px;">
+  🖨️ Print Filtered Sheet
+</button>
+
+<p id="msg"></p>
+
+<table>
+<thead>
+<tr>
+<th>NIC</th>
+<th>Name</th>
+<th>Branch</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Rating</th>
+<th>Created Date</th>
+<th>Loan Date</th>
+<th>End Date</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="result"></tbody>
+</table>
+</div>
+
+<script>
+// --- NIC conversion ---
+function convertNIC(nic){
+  let value = nic.toUpperCase().replace(/[^0-9VX]/g,"");
+  let oldPattern = /^\d{9}[VX]$/;
+  let newPattern = /^\d{12}$/;
+
+  if(newPattern.test(value)) return value;
+
+  if(oldPattern.test(value)){
+    let digits = value.substring(0,9);
+    let year = digits.substring(0,2);
+    let prefix = parseInt(year) > 30 ? "19" : "20";
+    let firstPart = digits.substring(2,5);
+    let lastPart = digits.substring(5);
+    return prefix + year + firstPart + "0" + lastPart;
+  }
+
+  return value; 
+}
+
+// --- live search ---
+let searchTimeout;
+function liveSearch(){
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(fetchCustomers, 300);
+}
+
+// --- fetch customers ---
+function fetchCustomers(){
+  let nic      = convertNIC(document.getElementById("searchNic").value.trim());
+  let name     = document.getElementById("searchName").value.trim();
+  let branch   = document.getElementById("searchBranch").value.trim();
+  let amount   = document.getElementById("searchAmount").value.trim();
+  let created  = document.getElementById("searchCreated").value;
+  let loan     = document.getElementById("searchLoan").value;
+  let end      = document.getElementById("searchEnd").value;
+  let status   = document.getElementById("searchStatus").value;
+
+  const params = new URLSearchParams({
+    nic, name, branch, amount, status, 
+    created_at: created, loan_date: loan, end_date: end
+  });
+
+  fetch("../api/search_customer.php?"+params.toString())
+  .then(r=>r.json())
+  .then(res=>{
+    const result = document.getElementById("result");
+    result.innerHTML="";
+
+    if(!res.records || res.records.length===0){
+      result.innerHTML="<tr><td colspan='10'>No Customer Found</td></tr>";
+      return;
+    }
+
+    res.records.forEach(l=>{
+      result.innerHTML += `
+<tr data-id="${l.id}">
+<td>${l.nic}</td>
+<td><input id="n${l.id}" value="${l.customer_name}"></td>
+<td><input id="b${l.id}" value="${l.branch}"></td>
+<td><input id="a${l.id}" type="number" value="${l.amount}"></td>
+<td>
+  <select id="s${l.id}" onchange="toggleRating(${l.id})">
+    <option ${l.status==="Active"?"selected":""}>Active</option>
+    <option ${l.status==="Closed"?"selected":""}>Closed</option>
+  </select>
+</td>
+<td>
+  <select id="r${l.id}" class="rating-${l.rating || ''}" style="display:${l.status==="Closed"?"block":"none"}">
+    <option value="">-- Rating --</option>
+    <option ${l.rating==="Excellent"?"selected":""}>Excellent</option>
+    <option ${l.rating==="Good"?"selected":""}>Good</option>
+    <option ${l.rating==="Poor"?"selected":""}>Poor</option>
+    <option ${l.rating==="Bad"?"selected":""}>Bad</option>
+  </select>
+</td>
+<td>${l.created_at ? l.created_at.split(' ')[0] : ''}</td>
+<td>${l.loan_date ? l.loan_date.split(' ')[0] : ''}</td>
+<td>${l.end_date ? l.end_date.split(' ')[0] : ''}</td>
+<td>
+  <button onclick="save(${l.id})">Save</button>
+  <button style="background:#c0392b;" onclick="remove(${l.id})">Delete</button>
+</td>
+</tr>`;
+    });
+  });
+}
+
+// --- toggle rating ---
+function toggleRating(id){
+ const status = document.getElementById("s"+id).value;
+ const rating = document.getElementById("r"+id);
+ rating.style.display = (status==="Closed") ? "block" : "none";
+ if(status!=="Closed") rating.value="";
+}
+
+// --- save ---
+function save(id){
+ const status = document.getElementById("s"+id).value;
+ const rating = document.getElementById("r"+id).value;
+ const name   = document.getElementById("n"+id).value;
+ const branch = document.getElementById("b"+id).value;
+ const amount = document.getElementById("a"+id).value;
+
+ fetch("../api/update_loan_full.php",{
+   method:"POST",
+   headers:{"Content-Type":"application/x-www-form-urlencoded"},
+   body:`id=${encodeURIComponent(id)}&status=${encodeURIComponent(status)}&rating=${encodeURIComponent(rating)}&name=${encodeURIComponent(name)}&branch=${encodeURIComponent(branch)}&amount=${encodeURIComponent(amount)}`
+ })
+ .then(r=>r.json())
+ .then(res=>{
+   if(res.status==="success"){
+     alert("Customer Updated Successfully");
+     fetchCustomers();
+   }else{
+     alert("Update Failed: "+res.msg);
+   }
+ });
+}
+
+// --- delete ---
+function remove(id){
+ if(!confirm("Are you sure you want to delete this customer?")) return;
+ fetch("../api/delete_customer.php",{
+   method:"POST",
+   headers:{"Content-Type":"application/x-www-form-urlencoded"},
+   body:"id="+encodeURIComponent(id)
+ })
+ .then(r=>r.json())
+ .then(res=>{
+   if(res.status==="success"){
+     alert("Customer Deleted Successfully");
+     fetchCustomers();
+   }else{
+     alert("Delete Failed: "+res.msg);
+   }
+ });
+}
+
+    
+function printTable() {
+  const rows = document.querySelectorAll("#result tr");
+  if(rows.length === 0) {
+    alert("No data to print!");
+    return;
+  }
+
+  let tableHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>NIC</th>
+          <th>Name</th>
+          <th>Branch</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Rating</th>
+          <th>Created Date</th>
+          <th>Loan Date</th>
+          <th>End Date</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let totalAmount = 0;
+
+  rows.forEach(row => {
+    const tds = row.querySelectorAll("td");
+    if(tds.length === 0) return; // skip empty rows
+
+    const nic    = tds[0].innerText.trim();
+    const name   = tds[1].querySelector("input")?.value || tds[1].innerText.trim();
+    const branch = tds[2].querySelector("input")?.value || tds[2].innerText.trim();
+    const amount = parseFloat(tds[3].querySelector("input")?.value || tds[3].innerText.trim()) || 0;
+    const status = tds[4].querySelector("select")?.value || tds[4].innerText.trim();
+    const rating = tds[5].querySelector("select")?.value || tds[5].innerText.trim();
+    const created = tds[6].innerText.trim();
+    const loan = tds[7].innerText.trim();
+    const end = tds[8].innerText.trim();
+
+    totalAmount += amount;
+
+    tableHTML += `
+      <tr>
+        <td>${nic}</td>
+        <td>${name}</td>
+        <td>${branch}</td>
+        <td>${amount.toFixed(2)}</td>
+        <td>${status}</td>
+        <td>${rating}</td>
+        <td>${created}</td>
+        <td>${loan}</td>
+        <td>${end}</td>
+      </tr>
+    `;
+  });
+
+  tableHTML += `
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3"><strong>Total</strong></td>
+          <td colspan="6"><strong>${totalAmount.toFixed(2)}</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  `;
+
+  const printWindow = window.open("", "", "width=1200,height=700");
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Customer Report</title>
+        <style>
+          body{font-family:Arial;padding:20px;}
+          h2{text-align:center;margin-bottom:10px;}
+          p{margin:5px 0;}
+          table{width:100%;border-collapse:collapse;margin-top:15px;}
+          th,td{border:1px solid #000;padding:8px;text-align:center;}
+          th{background:#f2f2f2;}
+          tfoot td{font-weight:bold;}
+          button,input,select{display:none;}
+        </style>
+      </head>
+      <body>
+        <h2>Customer Report</h2>
+        <p><strong>Print Date:</strong> ${new Date().toLocaleString()}</p>
+        ${tableHTML}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+}
+
+</script>
+
+</body>
+</html>

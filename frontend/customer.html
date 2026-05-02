@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Customer / Guarantor Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:"Segoe UI", Arial, sans-serif;margin:0;padding:0;}
+body{background:linear-gradient(135deg,#e6ecf5,#f9fbff);padding:20px;}
+.container{
+  max-width:1300px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.12);
+}
+h2{text-align:center;margin-bottom:20px;color:#1e3c72;}
+
+input, select{
+  padding:7px;
+  border-radius:6px;
+  border:1px solid #ccc; 
+  font-size:13px;
+  width:100%;
+}
+
+button{
+  padding:6px 10px;
+  border:none;
+  background:#2a5298;
+  color:#fff;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+button:hover{background:#1e3c72;}
+
+#nic_msg{
+  text-align:center;
+  font-weight:bold;
+  margin-top:6px;
+}
+
+.table-wrapper{overflow-x:auto;margin-top:20px;}
+table{width:100%;border-collapse:collapse;min-width:1250px;}
+
+th{
+  background:#1e3c72;
+  color:#fff;
+  padding:8px;
+  font-size:12px;
+  text-align:center;
+}
+
+td{
+  padding:4px;
+  text-align:center;
+  border-bottom:1px solid #ddd;
+  font-size:12px;
+}
+
+/* NIC Validation */
+.nic-valid{border-color:#27ae60;background:#f0fff4;}
+.input-error{border-color:#e74c3c;background:#fff5f5;}
+
+/* Highlight Matched NIC */
+.highlight-nic{
+  background:#fff3cd !important;
+  border:2px solid #f39c12 !important;
+}
+
+/* Rating Colors */
+.rating-Excellent{background:#d4edda !important;border:2px solid #28a745 !important;color:#155724;}
+.rating-Good{background:#e2f7e2 !important;border:2px solid #2ecc71 !important;color:#1e7e34;}
+.rating-Poor{background:#fff3cd !important;border:2px solid #f39c12 !important;color:#856404;}
+.rating-Bad{background:#f8d7da !important;border:2px solid #dc3545 !important;color:#721c24;}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Search Customer / Guarantor</h2>
+
+<input id="searchNic" placeholder="Enter NIC" oninput="liveSearch()">
+<p id="nic_msg"></p>
+
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+<th>Customer NIC</th>
+<th>Name</th>
+<th>Branch</th>
+<th>Amount</th>
+<th>Loan Date</th>
+<th>Duration (Months)</th>
+<th>End Date</th>
+<th>Guarantor 1</th>
+<th>Guarantor 2</th>
+<th>Officer</th>
+<th>Status</th>
+<th>Closing Date</th>
+<th>Rating</th>
+<th>Save</th>
+</tr>
+</thead>
+<tbody id="result"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+
+/* ---------- NIC FORMAT ---------- */
+function formatAndConvertNIC(nic){
+ let value = nic.toUpperCase().replace(/[^0-9VX]/g,"");
+ let oldPattern = /^\d{9}[VX]$/;
+ let newPattern = /^\d{12}$/;
+
+ if(newPattern.test(value)) return value;
+
+ if(oldPattern.test(value)){
+  let digits = value.substring(0,9);
+  let year = digits.substring(0,2);
+  let prefix = parseInt(year) > 30 ? "19" : "20";
+  let firstPart = digits.substring(2,5);
+  let lastPart = digits.substring(5);
+  return prefix + year + firstPart + "0" + lastPart;
+ }
+ return null;
+}
+
+let searchTimeout;
+
+/* ---------- LIVE SEARCH ---------- */
+function liveSearch(){
+ const nicInput = document.getElementById("searchNic");
+ const nic_msg = document.getElementById("nic_msg");
+ const result = document.getElementById("result");
+
+ let value = nicInput.value.trim();
+ nicInput.classList.remove("input-error","nic-valid");
+ nic_msg.innerText="";
+ result.innerHTML="";
+ clearTimeout(searchTimeout);
+ if(value==="") return;
+
+ let convertedNIC = formatAndConvertNIC(value);
+
+ if(convertedNIC){
+  nicInput.classList.add("nic-valid");
+  nic_msg.style.color="green";
+  nic_msg.innerText="Valid NIC";
+
+  searchTimeout = setTimeout(()=>{
+    searchCustomer(convertedNIC);
+  },300);
+
+ }else{
+  nicInput.classList.add("input-error");
+  nic_msg.style.color="red";
+  nic_msg.innerText="Invalid NIC format";
+ }
+}
+
+/* ---------- SEARCH CUSTOMER ---------- */
+function searchCustomer(nic){
+ fetch("../api/search_customer.php?nic="+encodeURIComponent(nic))
+ .then(r=>r.json())
+ .then(res=>{
+  const result = document.getElementById("result");
+  result.innerHTML="";
+  if(!res.records || res.records.length===0){
+   result.innerHTML="<tr><td colspan='13'>No Records Found</td></tr>";
+   return;
+  }
+
+  res.records.forEach(l=>{
+   let highlightCustomer = (l.nic === nic) ? "highlight-nic" : "";
+   let highlightG1 = (l.guarantor1_nic === nic) ? "highlight-nic" : "";
+   let highlightG2 = (l.guarantor2_nic === nic) ? "highlight-nic" : "";
+
+   result.innerHTML += `
+<tr>
+<td><input class="${highlightCustomer}" value="${l.nic}" readonly></td>
+<td><input value="${l.customer_name}" readonly></td>
+<td><input value="${l.branch}" readonly></td>
+<td><input type="number" value="${l.amount}" readonly></td>
+
+<td><input id="ld${l.id}" type="date" value="${l.loan_date || ''}" readonly></td>
+
+
+<td><input id="dur${l.id}" type="number" value="${l.duration || ''}" readonly></td>
+
+
+<td><input id="ed${l.id}" type="date" value="${l.end_date || ''}" readonly></td>
+
+<td><input id="g1${l.id}" class="${highlightG1}" value="${l.guarantor1_nic || ''}" readonly></td>
+
+<td><input id="g2${l.id}" class="${highlightG2}" value="${l.guarantor2_nic || ''}" readonly></td>
+
+
+<td><input id="rco${l.id}" value="${l.recovery_officer || ''}" readonly></td>
+
+<td>
+<select id="s${l.id}" onchange="toggleClosingDate(${l.id})"
+${l.status==="Closed" ? "disabled" : ""}>
+<option ${l.status==="Active"?"selected":""}>Active</option>
+<option ${l.status==="Closed"?"selected":""}>Closed</option>
+</select>
+</td>
+
+<td>
+<input id="cd${l.id}" type="date"
+value="${l.closing_date || ''}"
+style="display:${l.status==='Closed'?'block':'none'};"
+${l.status === "Closed" ? "readonly" : ""}>
+</td>
+
+<td>
+<select id="rt${l.id}" onchange="colorRating(${l.id})"
+${l.status === "Closed" ? "disabled" : ""}>
+<option value="">-- Rating --</option>
+<option ${l.rating==="Excellent"?"selected":""}>Excellent</option>
+<option ${l.rating==="Good"?"selected":""}>Good</option>
+<option ${l.rating==="Poor"?"selected":""}>Poor</option>
+<option ${l.rating==="Bad"?"selected":""}>Bad</option>
+</select>
+</td>
+
+<td><button onclick="save(${l.id})">Save</button></td>
+</tr>`;
+  });
+
+  res.records.forEach(l=>{
+    calculateEndDate(l.id);   // FIX: auto calculate end date
+    colorRating(l.id);
+  });
+ });
+}
+
+/* ---------- AUTO END DATE ---------- */
+function calculateEndDate(id) {
+    // Get values using dynamic IDs
+    let loanDate = document.getElementById("ld" + id).value;
+    let duration = document.getElementById("dur" + id).value;
+
+    // If empty, stop
+    if (!loanDate || !duration) return;
+
+    // Create date object
+    let date = new Date(loanDate);
+
+    // Add 34 days per duration (instead of months)
+    let daysToAdd = parseInt(duration) * 34;
+    date.setDate(date.getDate() + daysToAdd);
+
+    // Format YYYY-MM-DD
+    let year = date.getFullYear();
+    let month = String(date.getMonth() + 1).padStart(2, '0');
+    let day = String(date.getDate()).padStart(2, '0');
+
+    // Set result using dynamic ID
+    document.getElementById("ed" + id).value = `${year}-${month}-${day}`;
+}
+/* ---------- RATING COLOR ---------- */
+function colorRating(id){
+ const rating = document.getElementById("rt"+id);
+ rating.className="";
+ if(rating.value){
+  rating.classList.add("rating-"+rating.value);
+ }
+}
+
+/* ---------- SAVE ---------- */
+function save(id){
+ const loan_date = document.getElementById("ld"+id).value;
+ const duration = document.getElementById("dur"+id).value;
+ const end_date = document.getElementById("ed"+id).value;
+ const g1 = document.getElementById("g1"+id).value;
+ const g2 = document.getElementById("g2"+id).value;
+ const rco = document.getElementById("rco"+id).value;
+ const status = document.getElementById("s"+id).value;
+ const rating = document.getElementById("rt"+id).value;
+const closing_date = document.getElementById("cd"+id).value;
+
+
+ fetch("../api/update_loan.php",{
+  method:"POST",
+  headers:{"Content-Type":"application/x-www-form-urlencoded"},
+  body:
+   "id="+id+
+   "&loan_date="+encodeURIComponent(loan_date)+
+   "&loan_duration="+encodeURIComponent(duration)+
+   "&end_date="+encodeURIComponent(end_date)+
+   "&guarantor1_nic="+encodeURIComponent(g1)+
+   "&guarantor2_nic="+encodeURIComponent(g2)+
+   "&recovery_officer="+encodeURIComponent(rco)+
+  "&status="+encodeURIComponent(status)+
+"&closing_date="+encodeURIComponent(closing_date)+
+"&rating="+encodeURIComponent(rating)
+ })
+ .then(r=>r.json())
+ .then(res=>{
+  if(res.status==="success"){
+   alert("Loan Updated Successfully");
+  }else{
+   alert("Update Failed");
+  }
+ });
+}
+
+function toggleClosingDate(id){
+ const status = document.getElementById("s"+id).value;
+ const closingDate = document.getElementById("cd"+id);
+
+ if(status === "Closed"){
+   closingDate.style.display = "block";
+
+   // auto set today date if empty
+   if(!closingDate.value){
+     let today = new Date().toISOString().split('T')[0];
+     closingDate.value = today;
+   }
+closingDate.setAttribute("readonly", true); //  lock immediately
+ }else{
+   closingDate.style.display = "none";
+   closingDate.value = "";
+ }
+}
+</script>
+
+</body>
+</html>

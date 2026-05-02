@@ -1,0 +1,127 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== BODY ===== */
+body {
+  background: linear-gradient(120deg, #f0f4ff, #f9fbff);
+  min-height: 100vh;
+  padding: 15px;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  max-width: 1000px;
+  margin: auto;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+/* ===== HEADING ===== */
+h2 {
+  text-align: center;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+/* ===== INPUTS & BUTTON ===== */
+input, select {
+  padding: 8px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+input:focus, select:focus {
+  border-color: #4f6ef7;
+  outline: none;
+}
+
+button {
+  padding: 8px 14px;
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3d58d6;
+}
+
+/* ===== SEARCH ===== */
+#searchNic {
+  max-width: 280px;
+}
+
+/* ===== INFO ===== */
+#infoMsg {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+/* ===== TABLE WRAPPER ===== */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  min-width: 650px; /* 👈 IMPORTANT */
+  border-collapse: collapse;
+  background: #fff;
+}
+
+thead {
+  background: #4f6ef7;
+  color: #fff;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+/* ===== INPUTS INSIDE TABLE ===== */
+table input, table select {
+  min-width: 90px;
+}
+
+/* ===== HOVER ===== */
+tbody tr:hover {
+  background: rgba(79,110,247,0.08);
+}
+
+/* ===== CLOSED LOAN VISUAL ===== */
+select option[value="Closed"] {
+  color: red;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+
+  h2 {
+    font-size: 18px;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  input, select {
+    font-size: 14px;
+  }
+}

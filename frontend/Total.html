@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Loan Dashboard - Chart</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<style>
+body{
+  font-family:Segoe UI;
+  background:#f4f7fb;
+  padding:20px;
+  margin:0;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* Make canvas responsive */
+canvas{
+  margin-top:20px;
+  width:100% !important;
+  height:auto !important;
+}
+
+/* TABLE STYLE (ADDED) */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:25px;
+}
+
+th, td{
+  padding:10px;
+  text-align:center;
+  border-bottom:1px solid #ddd;
+}
+
+th{
+  background:#f0f3f8;
+}
+
+/* IMAGE SECTION (ADDED) */
+/* IMAGE SECTION (IMPROVED ONLY) */
+
+/* HOVER EFFECT */
+.image-row{
+  display:flex;
+  gap:12px;
+  margin-top:25px;
+}
+
+.image-row img{
+  width:33.33%;
+  height:160px;
+  object-fit:cover;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  transition:0.3s;
+}
+
+/* hover only desktop */
+.image-row img:hover{
+  transform:scale(1.03);
+}
+
+/* MOBILE KEEP SAME ROW */
+@media(max-width:768px){
+  .image-row{
+    flex-direction:row;   /* keep row */
+    gap:6px;
+  }
+
+  .image-row img{
+    width:33.33%;
+    height:120px;
+  }
+}
+
+
+/* MOBILE RESPONSIVE */
+@media(max-width:768px){
+  .container{
+    padding:15px;
+    border-radius:10px;
+  }
+
+  h2{
+    font-size:18px;
+  }
+
+  th, td{
+    font-size:14px;
+    padding:8px;
+  }
+
+  .image-row{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>📊 Branch-wise Monthly Loan Chart</h2>
+
+<!-- LOADING MESSAGE -->
+<div id="loading" style="text-align:center; padding:20px; font-weight:bold;">
+  ⏳ Loading chart data...
+</div>
+
+<!-- CHART -->
+<canvas id="loanChart" style="display:none;"></canvas>
+
+<!-- TABLE (ADDED) -->
+<table id="dataTable" style="display:none;">
+  <thead>
+    <tr>
+      <th>Branch</th>
+      <th>Total Amount</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- ===== 3 IMAGES ADDED BELOW ===== -->
+<div class="image-row">
+  <img src="img/Easy.jpg">
+  <img src="img/Gun.jpg">
+  <img src="img/safty.jpg">
+</div>
+
+</div>
+
+<script>
+
+let chart;
+
+function fetchData(){
+
+  fetch("../api/search_customer.php")
+  .then(res=>res.json())
+  .then(data=>{
+
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    let branchTotals = {};
+
+    data.records.forEach(item=>{
+
+      const loanDate = new Date(item.loan_date);
+
+      const isCurrentMonth =
+        loanDate >= firstDay && loanDate <= today;
+
+      if(isCurrentMonth){
+
+        if(!branchTotals[item.branch]){
+          branchTotals[item.branch] = 0;
+        }
+
+        branchTotals[item.branch] += parseFloat(item.amount) || 0;
+      }
+
+    });
+
+    const labels = Object.keys(branchTotals);
+    const values = Object.values(branchTotals);
+
+    if(chart){
+      chart.destroy();
+    }
+
+    const ctx = document.getElementById("loanChart").getContext("2d");
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Loan Amount',
+          data: values,
+          backgroundColor: [
+            '#4CAF50',
+            '#2196F3',
+            '#FF9800',
+            '#E91E63',
+            '#9C27B0'
+          ]
+        }]
+      },
+      options: {
+        responsive:true,
+        plugins:{
+          legend:{ display:false },
+          datalabels:{
+            anchor:'end',
+            align:'top',
+            color:'#333',
+            font:{ weight:'bold' },
+            formatter:function(value){
+              return value.toLocaleString();
+            }
+          }
+        },
+        scales:{
+          y:{ beginAtZero:true }
+        }
+      },
+      plugins:[ChartDataLabels]
+    });
+
+    // ===== TABLE DATA =====
+    const tbody = document.querySelector("#dataTable tbody");
+    tbody.innerHTML = "";
+
+    labels.forEach((branch, index)=>{
+      let row = `<tr>
+        <td>${branch}</td>
+        <td>${values[index].toLocaleString()}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+
+    // SHOW ALL
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("loanChart").style.display = "block";
+    document.getElementById("dataTable").style.display = "table";
+
+  });
+}
+
+fetchData();
+
+</script>
+
+</body>
+</html>

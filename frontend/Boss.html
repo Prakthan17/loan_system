@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boss Login</title>
+
+<style>
+/* GENERAL STYLES */
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial;}
+body{
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#8e44ad,#9b59b6);
+ padding:20px;
+}
+
+/* LOGIN WRAPPER */
+.wrapper{
+ width:100%;
+ max-width:400px;
+ background:#fff;
+ border-radius:16px;
+ padding:40px 30px;
+ box-shadow:0 18px 40px rgba(0,0,0,0.3);
+ text-align:center;
+}
+
+.wrapper h2{margin-bottom:28px;color:#8e44ad;}
+
+.wrapper input{
+ width:100%;
+ padding:14px;
+ margin-bottom:15px;
+ border-radius:10px;
+ border:1px solid #ccc;
+ font-size:15px;
+}
+
+.wrapper button{
+ width:100%;
+ padding:14px;
+ background:#8e44ad;
+ color:#fff;
+ border:none;
+ border-radius:10px;
+ font-size:16px;
+ cursor:pointer;
+ transition:0.3s;
+}
+
+.wrapper button:hover{background:#732d91;}
+
+.link{
+ margin-top:10px;
+ font-size:14px;
+ cursor:pointer;
+ color:#8e44ad;
+ text-decoration:underline;
+}
+
+#msg{margin-top:12px;font-size:14px;color:red;}
+
+/* POPUP OVERLAY */
+.popup{
+ position:fixed;
+ top:0; left:0;
+ width:100%; height:100%;
+ background:rgba(0,0,0,0.6);
+ display:none;
+ justify-content:center;
+ align-items:center;
+ z-index:999;
+ opacity:0;
+ transition:opacity 0.3s ease;
+}
+
+/* POPUP SHOW STATE */
+.popup.show{
+ display:flex;
+ opacity:1;
+}
+
+/* POPUP BOX */
+.popup-box{
+ background:#fff;
+ padding:30px 25px;
+ border-radius:16px;
+ width:340px;
+ max-width:90%;
+ text-align:center;
+ box-shadow:0 15px 40px rgba(0,0,0,0.3);
+ transform:translateY(-30px);
+ transition:transform 0.3s ease;
+ position:relative;
+}
+
+/* POPUP BOX ANIMATION */
+.popup.show .popup-box{
+ transform:translateY(0);
+}
+
+/* CLOSE ICON */
+.popup-box .close{
+ position:absolute;
+ top:12px;
+ right:12px;
+ font-size:18px;
+ font-weight:bold;
+ cursor:pointer;
+ color:#999;
+ transition:0.3s;
+}
+.popup-box .close:hover{color:#333;}
+
+/* POPUP INPUTS */
+.popup-box input{
+ width:100%;
+ padding:12px 14px;
+ margin:10px 0;
+ border-radius:10px;
+ border:1px solid #ccc;
+ font-size:15px;
+ transition:0.25s;
+}
+
+.popup-box input:focus{
+ outline:none;
+ border-color:#8e44ad;
+ box-shadow:0 0 0 3px rgba(142,68,173,0.25);
+}
+
+/* POPUP BUTTONS */
+.popup-box button{
+ width:100%;
+ padding:12px;
+ border:none;
+ border-radius:10px;
+ font-size:15px;
+ font-weight:600;
+ cursor:pointer;
+ margin-top:8px;
+ background:#8e44ad;
+ color:#fff;
+ transition:0.3s;
+}
+
+.popup-box button:hover{
+ background:#732d91;
+ transform:translateY(-2px);
+}
+
+/* CANCEL BUTTON */
+.popup-box button.cancel{
+ background:#999;
+}
+.popup-box button.cancel:hover{
+ background:#666;
+}
+
+/* MESSAGE */
+.popup-box #rmsg{
+ margin-top:10px;
+ font-weight:600;
+ font-size:14px;
+ color:red;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN WRAPPER -->
+<div class="wrapper">
+<h2>Boss Login for Mobile</h2>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="loginBoss()">Login</button>
+
+<div class="link" onclick="openReset()">Reset Password</div>
+
+<p id="msg"></p>
+</div>
+
+<!-- RESET POPUP -->
+<div class="popup" id="popup">
+<div class="popup-box">
+<span class="close" onclick="closeReset()">&times;</span>
+<h3>Reset Password</h3>
+
+<input id="ruser" placeholder="Username">
+<input id="rold" type="text" placeholder="Old Password">
+<input id="rnew" type="text" placeholder="New Password">
+
+<button onclick="resetPass()">Update</button>
+<button onclick="closeReset()" class="cancel">Cancel</button>
+
+<p id="rmsg"></p>
+</div>
+</div>
+
+<script>
+// LOGIN FUNCTION
+function loginBoss(){
+ const username = document.getElementById("username").value.trim();
+ const password = document.getElementById("password").value.trim();
+ const msg = document.getElementById("msg");
+
+ if(username==="" || password===""){
+  msg.innerText="❌ Enter username and password";
+  return;
+ }
+
+ fetch("../api/admin_login.php",{
+  method:"POST",
+  headers:{"Content-Type":"application/x-www-form-urlencoded"},
+  body:"username="+encodeURIComponent(username)+"&password="+encodeURIComponent(password)
+ })
+ .then(r=>r.json())
+ .then(d=>{
+  if(d.status==="success"){
+   msg.style.color="green";
+   msg.innerText="✅ Login success";
+   setTimeout(()=>location="Bcustomer.html",800);
+  }else{
+   msg.style.color="red";
+   msg.innerText="❌ "+(d.msg || "Invalid login");
+  }
+ });
+}
+
+// OPEN/CLOSE POPUP
+function openReset(){
+ document.getElementById("popup").classList.add("show");
+}
+function closeReset(){
+ document.getElementById("popup").classList.remove("show");
+}
+
+// RESET PASSWORD
+function resetPass(){
+ const u = ruser.value.trim();
+ const o = rold.value.trim();
+ const n = rnew.value.trim();
+ const msg = document.getElementById("rmsg");
+
+ if(!u || !o || !n){
+  msg.innerText="Fill all fields";
+  return;
+ }
+
+ fetch("../api/change_password.php",{
+  method:"POST",
+  headers:{"Content-Type":"application/x-www-form-urlencoded"},
+  body:`username=${u}&old=${o}&new=${n}`
+ })
+ .then(r=>r.json())
+ .then(d=>{
+  msg.innerText=d.msg;
+  msg.style.color=d.status==="success"?"green":"red";
+ });
+}
+</script>
+
+</body>
+</html>
